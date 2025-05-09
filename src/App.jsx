@@ -2,12 +2,33 @@ import React from "react";
 
 const API_URL = "https://api.github.com";
 
+async function fetchResults(query) {
+  try {
+    const response = await fetch(`${API_URL}/search/users?q=${query}`);
+    const json = await response.json();
+
+    return json.items || [];
+  } catch (error) {
+    throw new Error("Error: " + error.message);
+  }
+}
+
 function App() {
+  const [query, setQuery] = React.useState("");
+  const [results, setResults] = React.useState([]);
 
+  async function handleSubmit(event) {
+    event.preventDefault();
 
+    const queryResults = await fetchResults(query);
+    setResults(queryResults);
 
-  function handleSubmit(event) {
-    event.preventDefault()
+    setQuery("");
+  }
+
+  function handleInputChange(event) {
+    const newQuery = event.target.value;
+    setQuery(newQuery);
   }
 
   return (
@@ -26,6 +47,8 @@ function App() {
           type="text"
           name="item"
           placeholder="Enter a username or email"
+          value={query}
+          onChange={handleInputChange}
           required
         />
 
@@ -36,6 +59,33 @@ function App() {
           Search
         </button>
       </form>
+      <h2 className="text-center text-3xl font-bold pb-3">Results</h2>
+      <div className="flex flex-col items-center">
+        {results.map((result) => (
+          <div
+            key={result.id}
+            className="bg-white m-2 p-4 border w-sm rounded-lg shadow-black shadow-md"
+          >
+            <img
+              src={result.avatar_url}
+              alt="Profile"
+              width="80"
+              height="80"
+              className="rounded-full m-auto w-20 h-20"
+            />
+            <p className="text-lg text-center">Username: {result.login}</p>
+            {results.name && <p>Name: {result.name}</p>}
+            <a
+              href={result.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-700 hover:underline block text-center"
+            >
+              View Profile
+            </a>
+          </div>
+        ))}
+      </div>
     </>
   );
 }
